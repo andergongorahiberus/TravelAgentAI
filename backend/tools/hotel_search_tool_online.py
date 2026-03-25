@@ -6,7 +6,7 @@ from duckduckgo_search import DDGS
 logger = logging.getLogger(__name__)
 
 @tool
-def search_hotels(destination: str, check_in_date: str, check_out_date: str) -> str:
+def search_hotels_online(destination: str, check_in_date: str, check_out_date: str) -> str:
     """
     Search for hotels with a focus on extracting price data from search snippets.
 

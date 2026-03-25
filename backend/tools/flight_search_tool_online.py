@@ -3,7 +3,7 @@ from duckduckgo_search import DDGS
 
 
 @tool
-def search_flights(origin: str, destination: str, departure_date: str, return_date: str) -> str:
+def search_flights_online(origin: str, destination: str, departure_date: str, return_date: str) -> str:
     """
         Search for real-time flight information using DuckDuckGo.
         
