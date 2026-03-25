@@ -1,9 +1,11 @@
 import json
+import os
 import re
 import sys
 from datetime import date, timedelta
 from pathlib import Path
 
+import boto3
 from dotenv import load_dotenv
 
 # Carga .env y añade backend al path ANTES de los imports del proyecto
@@ -15,11 +17,34 @@ from agents.orchestrator import create_travel_graph  # noqa: E402
 from tools.config.destinations_schema import UserTravelQuery  # noqa: E402
 from tools.config.planification_schema import TravelReport  # noqa: E402
 
+# Si AGENTCORE_ARN está en .env → modo cloud; si no → modo local
+AGENTCORE_ARN = os.getenv("AGENTCORE_ARN")
 
-# ── Grafo instanciado una sola vez por sesión de Streamlit ────────────────────
+
+# ── Grafo local (solo se instancia si no hay AGENTCORE_ARN) ──────────────────
 @st.cache_resource
 def get_graph():
     return create_travel_graph()
+
+
+def run_agent(prompt: str, state: dict) -> str:
+    """Invoca el grafo en local o vía AgentCore según configuración."""
+    if AGENTCORE_ARN:
+        client = boto3.client(
+            "bedrock-agentcore",
+            region_name=os.getenv("AWS_REGION", "eu-west-1"),
+        )
+        response = client.invoke_agent_runtime(
+            agentRuntimeArn=AGENTCORE_ARN,
+            qualifier="DEFAULT",
+            payload=json.dumps({"prompt": prompt, "state": state}),
+        )
+        body = b"".join(chunk for chunk in response["response"])
+        result = json.loads(body)
+        return result.get("result", str(result))
+    else:
+        graph_result = get_graph()(prompt, invocation_state=state)
+        return extract_final_text(graph_result)
 
 
 # Nombres de los tools de structured_output_model por nodo
@@ -181,10 +206,10 @@ if submit:
             f"con un presupuesto de {state['budget_eur']}€."
         )
 
-        with st.spinner("Los agentes están trabajando… esto puede tardar unos minutos."):
+        mode = "AgentCore" if AGENTCORE_ARN else "local"
+        with st.spinner(f"Los agentes están trabajando… ({mode}) esto puede tardar unos minutos."):
             try:
-                result = get_graph()(prompt, invocation_state=state)
-                raw = extract_final_text(result)
+                raw = run_agent(prompt, state)
             except Exception as e:
                 st.error(f"Error durante la ejecución: {e}")
                 st.stop()
