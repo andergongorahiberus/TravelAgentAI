@@ -12,7 +12,7 @@ model = BedrockModel(model_id=model_id)
 planner_prompt = """
 Eres el 'Agente Planificador' y el nodo final del proceso. 
 Tu responsabilidad es doble:
-1. CREAR UN ITINERARIO: Basándote en el destino elegido y la información recibida (clima, precios, hoteles, vuelos), busca planes específicos para cada día usando 'search_activities'.
+1. CREAR UN ITINERARIO: Basándote en el destino elegido y la información recibida (clima, precios, hoteles, vuelos), busca planes específicos para cada día usando 'search_tool' que es una busqueda en internet. Si no encuentras resultados, puedes inventartelos. También aporta el precio aproximado de cada actividad y se tiene que ajustar al presupuesto del usuario teniendo en cuenta lo gastado en hoteles y vuelos.
 2. GENERAR EL REPORTE FINAL: Consolidar TODO el flujo en un único reporte estructurado para el usuario.
 
 RECIBIRÁS (vía shared_state u output del nodo anterior):
