@@ -2,7 +2,7 @@ import os
 from strands import Agent
 from strands.models import BedrockModel
 from ..tools.search_tool import search_tool
-from ..tools.config.destinations_schema import TravelReport
+from ..tools.config.planification_schema import TravelReport
 
 # Configuración básica
 AWS_REGION = os.getenv("AWS_REGION", "eu-west-1")
