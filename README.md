@@ -8,7 +8,7 @@
 
 **Stack obligatorio:** Streamlit + Strands Agents SDK + AWS Bedrock (AgentCore)
 
-**Demo:** 5 minutos en vivo. Input del usuario → orquestación visible → output en Streamlit.
+**Demo:** 10 minutos en vivo. Input del usuario → orquestación visible → output en Streamlit.
 
 ---
 
