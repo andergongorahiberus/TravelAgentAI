@@ -8,6 +8,8 @@ from tools.destinations_tool import search_destinations_online
 # from tools.mock_destinations_tool import search_destinations_online
 from tools.config.destinations_schema import ListaDestinos
 
+model_id = os.getenv("BEDROCK_MODEL_ID", "eu.anthropic.claude-sonnet-4-20250514-v1:0")
+
 
 def create_destinations_agent() -> Agent:
     """
@@ -39,7 +41,7 @@ def create_destinations_agent() -> Agent:
     """
 
     model = BedrockModel(
-        model_id="eu.anthropic.claude-3-5-sonnet-20240620-v1:0",
+        model_id=model_id,
         region_name=os.getenv("AWS_REGION", "eu-west-1"),
     )
 

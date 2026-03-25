@@ -20,6 +20,8 @@ from tools.climate_scorer_tool import calculate_climate_score
 
 from tools.config.weather_schema import ListaWeather
 
+model_id = os.getenv("BEDROCK_MODEL_ID", "eu.anthropic.claude-sonnet-4-20250514-v1:0")
+
 
 # Resolve prompts directory relative to project root
 PROMPT = """
@@ -113,9 +115,7 @@ def create_weather_agent() -> Agent:
 
     # LLM model — change model_id / region as needed
     model = BedrockModel(
-        model_id=os.getenv(
-            "BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-20250514-v1:0"
-        ),
+        model_id=model_id,
         region_name=os.getenv("AWS_REGION", "us-west-2"),
     )
 

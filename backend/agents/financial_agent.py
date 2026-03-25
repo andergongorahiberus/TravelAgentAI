@@ -8,7 +8,7 @@ from tools.hotel_search_tool import search_hotels
 
 
 logger = logging.getLogger(__name__)
-model_id = os.getenv("FINANCIAL_MODEL_ID", "eu.amazon.nova-2-lite-v1:0")
+model_id = os.getenv("BEDROCK_MODEL_ID", "eu.anthropic.claude-sonnet-4-20250514-v1:0")
 
 model = BedrockModel(model_id=model_id)
 

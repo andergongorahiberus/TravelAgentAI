@@ -6,8 +6,9 @@ from tools.config.planification_schema import TravelReport
 
 # Configuración básica
 AWS_REGION = os.getenv("AWS_REGION", "eu-west-1")
-MODEL_ID = "eu.anthropic.claude-3-5-sonnet-20240620-v1:0"
+model_id = os.getenv("BEDROCK_MODEL_ID", "eu.anthropic.claude-sonnet-4-20250514-v1:0")
 
+model = BedrockModel(model_id=model_id)
 planner_prompt = """
 Eres el 'Agente Planificador' y el nodo final del proceso. 
 Tu responsabilidad es doble:
@@ -34,7 +35,7 @@ No busques nuevos vuelos ni hoteles, usa los que ya te vienen dados.
 def create_planner_agent() -> Agent:
     """Crea el agente planificador que consolida la información y añade actividades."""
 
-    model = BedrockModel(model_id=MODEL_ID, region_name=AWS_REGION)
+    model = BedrockModel(model_id=model_id, region_name=AWS_REGION)
 
     return Agent(
         name="planner",
