@@ -18,7 +18,7 @@ from strands.models import BedrockModel
 from tools.weather_mcp import create_open_meteo_mcp
 from tools.climate_scorer_tool import calculate_climate_score
 
-from ..tools.config.weather_schema import ListaWeather
+from tools.config.weather_schema import ListaWeather
 
 
 # Resolve prompts directory relative to project root
@@ -148,6 +148,12 @@ def create_weather_agent() -> Agent:
 # Standalone test — run this file directly to test the agent in isolation
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
+    from pathlib import Path
+    from dotenv import load_dotenv
+
+    # Carga el .env desde la raíz del proyecto (TravelAgentAI/.env)
+    load_dotenv(Path(__file__).parents[2] / ".env", override=True)
+
     print("=" * 60)
     print("Testing Weather Agent (standalone)")
     print("=" * 60)

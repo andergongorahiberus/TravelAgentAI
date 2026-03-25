@@ -1,4 +1,6 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
+
 
 class FlightOption(BaseModel):
     airline: str = Field(..., description="Airline name")

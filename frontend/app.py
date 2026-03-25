@@ -1,70 +1,104 @@
-import streamlit as st
+import json
+import sys
 from datetime import date, timedelta
-import time
+from pathlib import Path
 
-# Basic Page Setup
-st.set_page_config(page_title="Travel Planner", page_icon="✈️")
+from dotenv import load_dotenv
 
-st.title("Travel Plan Generator")
-st.write("Enter your trip details below to generate a custom itinerary.")
+# Carga .env y añade backend al path ANTES de los imports del proyecto
+load_dotenv(Path(__file__).parents[1] / ".env", override=True)
+sys.path.insert(0, str(Path(__file__).parents[1] / "backend"))
 
-# Use a form to group inputs and prevent unnecessary reruns
+import streamlit as st  # noqa: E402
+from agents.orchestrator import create_travel_graph  # noqa: E402
+from tools.config.destinations_schema import UserTravelQuery  # noqa: E402
+
+
+# ── Grafo instanciado una sola vez por sesión de Streamlit ────────────────────
+@st.cache_resource
+def get_graph():
+    return create_travel_graph()
+
+
+# ── UI ────────────────────────────────────────────────────────────────────────
+st.set_page_config(page_title="Travel Planner AI", page_icon="✈️", layout="wide")
+st.title("✈️ Travel Planner AI")
+st.write("Rellena los datos de tu viaje y los agentes buscarán destinos, clima, precios e itinerario.")
+
 with st.form("travel_input_form"):
-    
-    # Destination Input
-    origin = st.text_input("Origin", placeholder="e.g. Paris, France")
-    
-    travel_style = st.multiselect(
-        "Travel Style (Select all that apply)",
-        ["Adventure", "Relaxation", "Foodie", "History", "Nightlife", "Family Friendly"],
-        default=["History"]
-    )
-
-    budget = st.number_input("Budget", min_value=0, step=100, help="Enter your total budget for the trip in USD.") 
-    
     col1, col2 = st.columns(2)
     with col1:
-        start_date = st.date_input("Arrival Date", value=date.today() + timedelta(days=30))
+        origin = st.text_input("Ciudad de origen", placeholder="ej. Madrid")
+        theme = st.selectbox(
+            "Temática del viaje",
+            ["playa", "montaña", "ciudad", "rural", "aventura"],
+        )
+        budget = st.number_input(
+            "Presupuesto total (€)",
+            min_value=100,
+            max_value=20000,
+            value=1500,
+            step=100,
+        )
     with col2:
-        end_date = st.date_input("Departure Date", value=date.today() + timedelta(days=35))
-    
-    special_requests = st.text_area("Special Requests or Constraints", help="e.g. Accessibility needs, dietary restrictions, or 'no museums'.")
-    
-    submit = st.form_submit_button("Generate Itinerary")
+        departure_date = st.date_input(
+            "Fecha de salida", value=date.today() + timedelta(days=30)
+        )
+        return_date = st.date_input(
+            "Fecha de regreso", value=date.today() + timedelta(days=37)
+        )
 
-# Logic to display results
+    submit = st.form_submit_button("🚀 Planificar viaje", use_container_width=True)
+
+# ── Ejecución del grafo ───────────────────────────────────────────────────────
 if submit:
     if not origin:
-        st.warning("Please provide an origin.")
-    elif end_date <= start_date:
-        st.error("Error: Departure date must be after the arrival date.")
+        st.warning("Indica una ciudad de origen.")
+    elif return_date <= departure_date:
+        st.error("La fecha de regreso debe ser posterior a la de salida.")
     else:
-        # Visual feedback for the user
-        with st.spinner(f"Creating your dream trip from {origin}..."):
-            # This is a placeholder for your AI API call
-            time.sleep(1.5) 
-            
-            st.success("Itinerary Ready!")
-            st.divider()
-            
-            # Placeholder Output
-            st.header(f"Trip to {origin}")
-            st.subheader(f"{start_date} to {end_date}")
-            
-            st.markdown(f"""
-            **Summary:**
-            - **Budget:** {budget}
-            - **Focus:** {', '.join(travel_style)}
-            
-            **Day 1: Arrival**
-            - Check into hotel.
-            - Light walking tour of the neighborhood.
-            - Dinner at a local spot matching your '{travel_style[0]}' preference.
-            
-            **Day 2: Exploration**
-            - Morning activity based on: {special_requests if special_requests else "General sightseeing"}.
-            - Evening relaxation.
-            """)
-            
-            # Simple text download
-            st.download_button("Download as Text", "Your Travel Plan Data...", file_name="itinerary.txt")
+        try:
+            query = UserTravelQuery(
+                origin=origin,
+                theme=theme,
+                budget_eur=float(budget),
+                departure_date=departure_date,
+                return_date=return_date,
+            )
+        except Exception as e:
+            st.error(f"Error de validación: {e}")
+            st.stop()
+
+        state = query.model_dump(mode="json")
+
+        prompt = (
+            f"Planifica un viaje de {state['theme']} desde {state['origin']} "
+            f"del {state['departure_date']} al {state['return_date']} "
+            f"con un presupuesto de {state['budget_eur']}€."
+        )
+
+        with st.spinner("Los agentes están trabajando… esto puede tardar unos minutos."):
+            try:
+                graph = get_graph()
+                result = graph(prompt, invocation_state=state)
+                raw = str(result.message) if hasattr(result, "message") else str(result)
+            except Exception as e:
+                st.error(f"Error durante la ejecución: {e}")
+                st.stop()
+
+        st.success("¡Plan generado!")
+        st.divider()
+
+        # Intenta parsear como JSON y mostrarlo bonito; si no, texto plano
+        try:
+            data = json.loads(raw)
+            st.json(data)
+        except (json.JSONDecodeError, TypeError):
+            st.markdown(raw)
+
+        st.download_button(
+            "⬇️ Descargar resultado",
+            data=raw,
+            file_name="travel_plan.json",
+            mime="application/json",
+        )

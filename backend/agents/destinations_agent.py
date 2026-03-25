@@ -4,8 +4,8 @@ from strands import Agent
 from strands.models import BedrockModel
 
 # from ..tools.destinations_tool import search_destinations_online
-from ..tools.mock_destinations_tool import search_destinations_online
-from ..tools.config.destinations_schema import ListaDestinos
+from tools.mock_destinations_tool import search_destinations_online
+from tools.config.destinations_schema import ListaDestinos
 
 
 def create_destinations_agent() -> Agent:
@@ -38,7 +38,7 @@ def create_destinations_agent() -> Agent:
     """
 
     model = BedrockModel(
-        model_id="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        model_id="eu.anthropic.claude-3-5-sonnet-20240620-v1:0",
         region_name=os.getenv("AWS_REGION", "eu-west-1"),
     )
 

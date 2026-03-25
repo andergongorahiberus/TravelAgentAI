@@ -1,9 +1,10 @@
 import logging
-
+import os
 from strands import Agent
 from strands.models import BedrockModel
-from .tools.config import FlightOption, HotelOption, FinancialAgentResponse
-from .tools import search_flights, search_hotels
+from tools.config import FlightOption, HotelOption, FinancialAgentResponse
+from tools.flight_search_tool import search_flights
+from tools.hotel_search_tool import search_hotels
 
 
 logger = logging.getLogger(__name__)
@@ -34,12 +35,13 @@ Eres un Consultor Financiero de Viajes de Élite. Tu objetivo es diseñar itiner
 Profesional, transparente, analítico y preventivo. Actúa como un experto que protege el dinero del usuario.
 """
 
+
 def create_financial_agent():
     return Agent(
-        model=model, 
-        name="FinancialAgent", 
+        model=model,
+        name="FinancialAgent",
         system_prompt=_SYSTEM_PROMPT,
         description="An agent that provides the financial information of the trip.",
         tools=[search_flights, search_hotels],
-        structured_output=FinancialAgentResponse
+        structured_output_model=FinancialAgentResponse,
     )
