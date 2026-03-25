@@ -5,6 +5,8 @@ from strands.models import BedrockModel
 from tools.config import FlightOption, HotelOption, FinancialAgentResponse
 from tools.flight_search_tool import search_flights
 from tools.hotel_search_tool import search_hotels
+from tool.flight_search_tool_online import search_flights as search_flights_online
+from tool.hotel_search_tool_online import search_hotels as search_hotels_online
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,6 @@ def create_financial_agent():
         name="FinancialAgent",
         system_prompt=_SYSTEM_PROMPT,
         description="An agent that provides the financial information of the trip.",
-        tools=[search_flights, search_hotels],
+        tools=[search_flights_online, search_hotels_online],
         structured_output_model=FinancialAgentResponse,
     )
