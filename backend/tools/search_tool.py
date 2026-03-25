@@ -1,33 +1,32 @@
-# tools/search_tool.py
 from strands import tool
-import os
-import json
+from duckduckgo_search import DDGS
+import logging
 
-MOCK_FILE = os.path.join(os.path.dirname(__file__), "..", "config", "mocks.json")
+logger = logging.getLogger(__name__)
 
 @tool
-def search_tool(query: str) -> str:
-    """MOCK: Busca actividades, planes y lugares de interés en el destino sugerido.
+def search_tool(query: str, max_results: int = 5) -> str:
+    """Busca información en internet usando DuckDuckGo.
+    
+    Ideal para encontrar actividades y sus precios, lugares de interés y recomendaciones actualizadas.
     
     Args:
-        query: Consulta sobre actividades (ej: 'qué hacer en Santorini', 'restaurantes en Paris')
+        query: La consulta de búsqueda (ej: 'mejores cosas que hacer en Santorini')
+        max_results: Número de resultados a devolver (máximo 10)
     """
-    if os.path.exists(MOCK_FILE):
-        try:
-            with open(MOCK_FILE, "r", encoding="utf-8") as f:
-                mocks = json.load(f).get("search", {})
-                query_lower = query.lower()
-                
-                # Búsqueda de actividades en los mocks
-                for key, data in mocks.items():
-                    if "actividades" in key.lower() and key.lower().split()[0] in query_lower:
-                        return data
-                
-                # Fallback genérico por ciudad
-                for key, data in mocks.items():
-                    if key.lower().split()[0] in query_lower:
-                        return data
-        except Exception:
-            pass
-
-    return f"Simulación de búsqueda de actividades para: '{query}'. Se han encontrado varios puntos de interés y recomendaciones locales."
+    try:
+        results = []
+        with DDGS() as ddgs:
+            # Realizar la búsqueda de texto
+            ddgs_gen = ddgs.text(query, max_results=max_results)
+            for r in ddgs_gen:
+                results.append(f"- {r['title']}: {r['body']}")
+        
+        if not results:
+            return f"No se encontraron resultados para: {query}"
+            
+        return "\n".join(results)
+        
+    except Exception as e:
+        logger.error(f"Error al buscar en DuckDuckGo: {e}")
+        return f"Error en la búsqueda: {str(e)}"
