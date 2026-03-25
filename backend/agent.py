@@ -2,6 +2,7 @@
 import json
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from agents.orchestrator import create_travel_graph
+from tools.config.destinations_schema import UserTravelQuery
 
 # Crear la app AgentCore
 app = BedrockAgentCoreApp()
@@ -20,8 +21,18 @@ def invoke(payload):
     user_prompt = payload.get("prompt", "")
     shared_state = payload.get("state", {})
 
+    try:
+        validated_data = UserTravelQuery(**shared_state)
+        clean_state = validated_data.model_dump()
+
+    except Exception as e:
+        return {
+            "result": f"Error de validación: {str(e)}",
+            "status": "error_schema_validation",
+        }
+
     # Ejecutar el grafo completo
-    result = travel_graph(user_prompt, invocation_state=shared_state)
+    result = travel_graph(user_prompt, invocation_state=clean_state)
 
     return {
         "result": str(result.message) if hasattr(result, "message") else str(result),
