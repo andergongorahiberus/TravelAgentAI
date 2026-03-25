@@ -4,11 +4,11 @@ from datetime import date
 
 
 class UserTravelQuery(BaseModel):
-    origin: str = Field(..., example="Madrid")
-    theme: str = Field(..., example="Aventura")
-    budget_eur: float = Field(..., gt=0, example=1500.0)
-    departure_date: date = Field(..., example="2026-10-10")
-    return_date: date = Field(..., example="2026-10-20")
+    origin: str = Field(..., examples=["Madrid"])
+    theme: str = Field(..., examples=["Aventura"])
+    budget_eur: float = Field(..., gt=0, examples=[1500.0])
+    departure_date: date = Field(..., examples=["2026-10-10"])
+    return_date: date = Field(..., examples=["2026-10-20"])
 
 
 class DestinoEncontrado(BaseModel):
