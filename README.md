@@ -1,4 +1,4 @@
-# TravelAgent AI — Proyecto Final Hiberus AI University 2026
+# TravelAgent AI
 
 ## 1. Visión del proyecto
 
